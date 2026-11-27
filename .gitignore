@@ -1,0 +1,10 @@
+/bin/
+/dist/
+/kubemon
+/kubectl-monitor
+*.test
+*.out
+coverage.*
+.omc/
+.claude/settings.local.json
+completions/
