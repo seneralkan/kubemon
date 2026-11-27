@@ -192,12 +192,12 @@ func rolloutStatus(u *unstructured.Unstructured, runs []*unstructured.Unstructur
 // role returns primaryRole for hash == primary, secondaryRole for hash ==
 // secondary (when it differs from primary), else RoleOld.
 func role(hash, primary, primaryRole, secondary, secondaryRole string) string {
-	switch {
-	case hash == "":
+	switch hash {
+	case "":
 		return model.RoleOld
-	case hash == primary:
+	case primary:
 		return primaryRole
-	case hash == secondary:
+	case secondary:
 		return secondaryRole
 	}
 	return model.RoleOld

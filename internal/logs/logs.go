@@ -320,8 +320,8 @@ func (f *Follower) copy(ctx context.Context, pod string, o *corev1.PodLogOptions
 	if err != nil {
 		return last, 0, err
 	}
-	defer rc.Close()
-	stop := context.AfterFunc(ctx, func() { rc.Close() }) // unblock a pending Read
+	defer func() { _ = rc.Close() }()
+	stop := context.AfterFunc(ctx, func() { _ = rc.Close() }) // unblock a pending Read
 	defer stop()
 
 	r := bufio.NewReader(rc)
