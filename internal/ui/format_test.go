@@ -132,3 +132,19 @@ func TestSanitize(t *testing.T) {
 		}
 	}
 }
+
+func TestAnalysisText(t *testing.T) {
+	a := model.Analysis{Phase: "Failed", Message: `Metric "success-rate" assessed Failed`, Metrics: []model.AnalysisMetric{
+		{Name: "success-rate", Value: "91.2%", Successful: 1, Failed: 2},
+		{Name: "latency-p99", Value: "182ms", Successful: 3},
+	}}
+	want := `analysis Failed · success-rate 91.2% ✓1 ✗2 · latency-p99 182ms ✓3 — Metric "success-rate" assessed Failed`
+	if got := analysisText(a); got != want {
+		t.Errorf("got  %q\nwant %q", got, want)
+	}
+	for phase, want := range map[string]severity{"Successful": sevOK, "Running": sevWarn, "Failed": sevBad, "Error": sevBad} {
+		if got := analysisSeverity(phase); got != want {
+			t.Errorf("%s: severity %v, want %v", phase, got, want)
+		}
+	}
+}

@@ -364,3 +364,36 @@ func skipEscape(s string, i int) int {
 		return i
 	}
 }
+
+// analysisText summarizes an AnalysisRun: phase, then each metric's latest
+// value with its successful (✓) and failed (✗) measurement counts.
+func analysisText(a model.Analysis) string {
+	parts := []string{"analysis " + a.Phase}
+	for _, m := range a.Metrics {
+		t := m.Name
+		if m.Value != "" {
+			t += " " + sanitize(m.Value)
+		}
+		t += fmt.Sprintf(" ✓%d", m.Successful)
+		if m.Failed > 0 {
+			t += fmt.Sprintf(" ✗%d", m.Failed)
+		}
+		parts = append(parts, t)
+	}
+	s := strings.Join(parts, " · ")
+	if a.Message != "" {
+		s += " — " + sanitize(a.Message)
+	}
+	return s
+}
+
+// analysisSeverity colors an AnalysisRun by its phase.
+func analysisSeverity(phase string) severity {
+	switch phase {
+	case "Successful":
+		return sevOK
+	case "Failed", "Error", "Inconclusive":
+		return sevBad
+	}
+	return sevWarn
+}

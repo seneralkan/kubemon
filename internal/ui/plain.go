@@ -83,6 +83,11 @@ func (p *plain) header(s model.Snapshot) {
 	if s.Rollout != nil && s.Rollout.Message != "" {
 		p.printf(s.Time, "message: %s", s.Rollout.Message)
 	}
+	if s.Rollout != nil {
+		for _, a := range s.Rollout.Analysis {
+			p.printf(s.Time, "%s", analysisText(a))
+		}
+	}
 	for _, r := range s.Revisions {
 		if visibleRevision(r) {
 			p.printf(s.Time, "revision %s", revisionText(r))
@@ -121,6 +126,15 @@ func (p *plain) rolloutChanges(t time.Time, a, b *model.RolloutStatus) {
 	}
 	if len(ch) > 0 {
 		p.printf(t, "rollout %s", strings.Join(nonEmpty(ch...), " · "))
+	}
+	before := map[string]string{}
+	for _, an := range a.Analysis {
+		before[an.Name] = analysisText(an)
+	}
+	for _, an := range b.Analysis {
+		if txt := analysisText(an); txt != before[an.Name] {
+			p.printf(t, "%s", txt)
+		}
 	}
 }
 
