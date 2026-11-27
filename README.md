@@ -42,6 +42,22 @@ One-time setup:
 
 Run `make release-snapshot` for a local dry run.
 
+## Try it without a cluster
+
+```sh
+kubemon demo          # a simulated Argo canary release, rendered by the real TUI
+kubemon demo --fail   # the analysis fails and the rollout is aborted
+kubemon demo -o plain --step 300ms
+```
+
+The demo walks a `checkout` Rollout from 1.41.0 to 1.42.0:
+
+- a new pod pulls its image, fails its readiness probe twice, then becomes ready
+- the canary pauses at 20% weight
+- at 50% a second pod is OOMKilled and goes into CrashLoopBackOff; its previous logs show the crash
+- the AnalysisRun reports success-rate and latency-p99
+- the canary is promoted to 100% and the old pods terminate
+
 ## Usage
 
 ```sh

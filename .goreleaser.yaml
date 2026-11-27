@@ -33,6 +33,9 @@ archives:
 checksum:
   name_template: checksums.txt
 
+release:
+  prerelease: auto # tags like v0.2.0-beta.1 become GitHub pre-releases
+
 changelog:
   sort: asc
   filters:

@@ -298,6 +298,9 @@ func (m *tuiModel) header() []string {
 			}
 			lines = append(lines, style.Render(r.Message))
 		}
+		for _, a := range r.Analysis {
+			lines = append(lines, sevStyle(analysisSeverity(a.Phase)).Render(analysisText(a)))
+		}
 	}
 
 	var rows [][]string
