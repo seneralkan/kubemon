@@ -1,31 +1,57 @@
-/*
-Copyright © 2024 SENER ALKAN
-*/
 package cmd
 
 import (
+	"context"
+	"errors"
+	"fmt"
 	"os"
+	"os/signal"
+	"syscall"
 
 	"github.com/spf13/cobra"
+	"k8s.io/cli-runtime/pkg/genericclioptions"
 )
 
-// rootCmd represents the base command when called without any subcommands
+// configFlags are the kubectl connection flags: --kubeconfig, --context, -n, ...
+var configFlags = genericclioptions.NewConfigFlags(true)
+
 var rootCmd = &cobra.Command{
 	Use:   "kubemon",
 	Short: "A command line tool for monitoring kubernetes resources while deploying releases",
-	Long: `Kubemon is a command line tool for monitoring kubernetes resources while deploying releases.
-	It is designed to be used in CI/CD pipelines to monitor the status of resources while deploying releases.`,
+	Long: `kubemon watches a release as it happens: rollout progress, pods grouped by
+revision, the events behind them and the logs of the new pods, in one view.
+Run it interactively, or in CI with --wait to block until the release finishes.`,
+	SilenceUsage:  true,
+	SilenceErrors: true,
 }
 
-// Execute adds all child commands to the root command and sets flags appropriately.
-// This is called by main.main(). It only needs to happen once to the rootCmd.
+// exitError carries a process exit code out of a command.
+type exitError struct {
+	code int
+	msg  string
+}
+
+func (e *exitError) Error() string { return e.msg }
+
+// Execute runs the root command and exits with its code.
 func Execute() {
-	err := rootCmd.Execute()
-	if err != nil {
-		os.Exit(1)
+	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
+	err := rootCmd.ExecuteContext(ctx)
+	stop()
+	if err == nil {
+		return
 	}
+	var ee *exitError
+	if errors.As(err, &ee) {
+		if ee.msg != "" {
+			fmt.Fprintln(os.Stderr, ee.msg)
+		}
+		os.Exit(ee.code)
+	}
+	fmt.Fprintln(os.Stderr, "Error:", err)
+	os.Exit(3)
 }
 
 func init() {
-	// Here you will define your flags and configuration settings.
+	configFlags.AddFlags(rootCmd.PersistentFlags())
 }
