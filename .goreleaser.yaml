@@ -1,0 +1,68 @@
+# GoReleaser v2. Release: push a tag vX.Y.Z; .github/workflows/release.yml runs this.
+version: 2
+
+project_name: kubemon
+
+before:
+  hooks:
+    - go mod tidy
+    - sh -c 'mkdir -p completions && for sh in bash zsh fish; do go run . completion "$sh" > "completions/kubemon.$sh"; done'
+
+builds:
+  - id: kubemon
+    binary: kubemon
+    env:
+      - CGO_ENABLED=0
+    goos: [darwin, linux]
+    goarch: [amd64, arm64]
+    flags: [-trimpath]
+    ldflags:
+      - -s -w
+      - -X github.com/seneralkan/kubemon/cmd.version={{.Version}}
+      - -X github.com/seneralkan/kubemon/cmd.commit={{.ShortCommit}}
+      - -X github.com/seneralkan/kubemon/cmd.date={{.Date}}
+
+archives:
+  - formats: [tar.gz]
+    name_template: "{{ .ProjectName }}_{{ .Version }}_{{ .Os }}_{{ .Arch }}"
+    files:
+      - README.md
+      - LICENSE
+      - completions/*
+
+checksum:
+  name_template: checksums.txt
+
+changelog:
+  sort: asc
+  filters:
+    exclude: ["^docs:", "^test:", "^ci:", "^chore:"]
+
+homebrew_casks:
+  - name: kubemon
+    binaries: [kubemon]
+    completions:
+      bash: completions/kubemon.bash
+      zsh: completions/kubemon.zsh
+      fish: completions/kubemon.fish
+    homepage: https://github.com/seneralkan/kubemon
+    description: A command line tool for monitoring kubernetes resources while deploying releases
+    directory: Casks
+    commit_author:
+      name: kubemon-release-bot
+      email: noreply@github.com
+    commit_msg_template: "kubemon {{ .Version }}"
+    repository:
+      owner: seneralkan
+      name: homebrew-tap
+      branch: main
+      git:
+        url: git@github.com:seneralkan/homebrew-tap.git
+        private_key: "{{ .Env.HOMEBREW_TAP_DEPLOY_KEY }}"
+    hooks:
+      post:
+        # The binary isn't notarized; drop the quarantine flag so macOS runs it.
+        install_steps: |
+          on_macos do
+            run "/usr/bin/xattr", args: ["-dr", "com.apple.quarantine", "{{ .StagedPath }}/kubemon"]
+          end

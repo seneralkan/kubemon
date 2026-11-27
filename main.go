@@ -1,6 +1,4 @@
-/*
-Copyright © 2024 SENER ALKAN
-*/
+// Command kubemon monitors Kubernetes releases as they happen.
 package main
 
 import "github.com/seneralkan/kubemon/cmd"
