@@ -476,7 +476,7 @@ func TestClosesAfterCancel(t *testing.T) {
 
 func TestLinesBeforeSync(t *testing.T) {
 	f, _, _ := setup(t, Options{})
-	if f.Lines() == nil || f.Lines() != f.Lines() {
+	if ch := f.Lines(); ch == nil || ch != f.Lines() {
 		t.Fatal("Lines must return the same non-nil channel")
 	}
 }

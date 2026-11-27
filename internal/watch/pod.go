@@ -134,12 +134,13 @@ func displayStatus(p *corev1.Pod) string {
 		case sidecars[c.Name] && c.Started != nil && *c.Started:
 			continue
 		case c.State.Terminated != nil:
-			if c.State.Terminated.Reason != "" {
-				reason = "Init:" + c.State.Terminated.Reason
-			} else if c.State.Terminated.Signal != 0 {
-				reason = fmt.Sprintf("Init:Signal:%d", c.State.Terminated.Signal)
-			} else {
-				reason = fmt.Sprintf("Init:ExitCode:%d", c.State.Terminated.ExitCode)
+			switch t := c.State.Terminated; {
+			case t.Reason != "":
+				reason = "Init:" + t.Reason
+			case t.Signal != 0:
+				reason = fmt.Sprintf("Init:Signal:%d", t.Signal)
+			default:
+				reason = fmt.Sprintf("Init:ExitCode:%d", t.ExitCode)
 			}
 		case c.State.Waiting != nil && c.State.Waiting.Reason != "" && c.State.Waiting.Reason != "PodInitializing":
 			reason = "Init:" + c.State.Waiting.Reason
