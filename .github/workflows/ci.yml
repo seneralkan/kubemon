@@ -52,7 +52,7 @@ jobs:
       - name: Install Argo Rollouts ${{ env.ARGO_ROLLOUTS_VERSION }}
         run: |
           kubectl create namespace argo-rollouts
-          kubectl apply -n argo-rollouts -f "https://github.com/argoproj/argo-rollouts/releases/download/${ARGO_ROLLOUTS_VERSION}/install.yaml"
+          kubectl apply --server-side -n argo-rollouts -f "https://github.com/argoproj/argo-rollouts/releases/download/${ARGO_ROLLOUTS_VERSION}/install.yaml"
           kubectl wait --for=condition=Established crd/rollouts.argoproj.io --timeout=60s
           kubectl -n argo-rollouts wait --for=condition=Available deployment --all --timeout=180s
       - name: Build kubemon
